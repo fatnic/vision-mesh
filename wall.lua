@@ -19,7 +19,9 @@ function Wall.new(x, y, w, h)
 
     for _, segment in pairs(wall.segments) do
         segment.angle = math.atan2(segment.b.y - segment.a.y, segment.b.x - segment.a.x)
-        segment.delta = { x = segment.b.x - segment.a.x, y = segment.b.y - segment.a.y }
+        local dx = segment.b.x - segment.a.x
+        local dy = segment.b.y - segment.a.y
+        segment.delta = tools.normalize({ x = dx, y = dy })
     end
 
     wall.points = {}
