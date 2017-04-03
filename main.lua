@@ -5,15 +5,21 @@ local width, height = love.graphics:getDimensions()
 
 wal_list = {
     { 0, 0, width, height },
-    { 20*16, 5*16, 10*16, 10*16 },
-    { 30*16, 25*16, 10*16, 10*16 }
+    { 20*16, 5*16, 1*16, 10*16 },
+    { 30*16, 25*16, 1*16, 10*16 },
+    { 35*16, 10*16, 2*16, 2*16 }
 }
 
 local walls = {}
-local origin = { x = 50, y = 50 }
+local origin = { x = 50, y = 50, d = 300 }
 
 local rays = {}
 
+local curray = 1
+
+function viewStencil()
+    love.graphics.circle('fill', origin.x, origin.y, origin.d)
+end
 
 function love.load()
 
@@ -68,7 +74,7 @@ function love.update(dt)
                 if samedir then 
                     current.ray.shadowpoints = {{x = cInt.x, y = cInt.y}, { x = current.a.x, y = current.a.y }}
                 else
-                    current.ray.shadowpoints = {{x = cInt.x, y = cInt.y}, { x = current.b.x, y = current.b.y }}
+                    current.ray.shadowpoints = { { x = current.b.x, y = current.b.y }, {x = cInt.x, y = cInt.y}}
                 end
                 table.insert(rays, current.ray)
             end
@@ -136,27 +142,36 @@ function love.mousemoved(x, y)
     origin.y = y
 end
 
+function love.keypressed(key)
+    if key == 'q' then curray = curray - 1 end
+    if key == 'w' then curray = curray + 1 end
+
+    if curray > #rays then curray = 1 end
+    if curray < 1 then curray = #rays end
+end
+
 function love.draw()
 
-    for _, wall in pairs(walls) do
-        for _, segment in pairs(wall.segments) do
+    -- for _, wall in pairs(walls) do
+    --     for _, segment in pairs(wall.segments) do
 
-            -- segment facing or parallel
-            local color = tools.ternary(segment.facing, {255,255,0}, {0,255,0})
-            color = tools.ternary(segment.parallel, {0,0,255}, color)
-            love.graphics.setColor(color)
-            love.graphics.line(segment.a.x, segment.a.y, segment.b.x, segment.b.y)
+    --         -- segment facing or parallel
+    --         local color = tools.ternary(segment.facing, {255,255,0}, {0,255,0})
+    --         color = tools.ternary(segment.parallel, {0,0,255}, color)
+    --         love.graphics.setColor(color)
+    --         love.graphics.line(segment.a.x, segment.a.y, segment.b.x, segment.b.y)
 
-            -- ray
-            local color = tools.ternary(segment.ray.blocked, {255,0,0,0},{100,100,100,100})
-            love.graphics.setColor(color)
-            love.graphics.line(segment.ray.a.x, segment.ray.a.y, segment.ray.b.x, segment.ray.b.y)
+    --         -- ray
+    --         local color = tools.ternary(segment.ray.blocked, {255,0,0,10},{100,100,100,10})
+    --         love.graphics.setColor(color)
+    --         love.graphics.line(segment.ray.a.x, segment.ray.a.y, segment.ray.b.x, segment.ray.b.y)
 
-        end
-    end
+    --     end
+    -- end
 
     -- single ray draw
-    -- local ray = walls[2].segments[3].ray
+    -- local ray = walls[curwall].segments[curseg].ray
+    -- local ray = rays[curray]
     -- local color = tools.ternary(ray.blocked, {255,0,0,100},{100,100,100,100})
     -- love.graphics.setColor(color)
     -- love.graphics.line(ray.a.x, ray.a.y, ray.b.x, ray.b.y)
@@ -166,12 +181,12 @@ function love.draw()
     -- end
 
     -- shadowpoints
-    love.graphics.setColor(255 ,255, 0)
-    for _, ray in pairs(rays) do
-        for _, sp in pairs(ray.shadowpoints) do
-            love.graphics.circle('fill', sp.x, sp.y, 5)
-        end
-    end
+    -- love.graphics.setColor(255 ,255, 0)
+    -- for _, ray in pairs(rays) do
+    --     for _, sp in pairs(ray.shadowpoints) do
+    --         love.graphics.circle('fill', sp.x, sp.y, 5)
+    --     end
+    -- end
 
     -- shadow mesh
     love.graphics.setColor(255, 255, 255, 50)
@@ -182,9 +197,9 @@ function love.draw()
     love.graphics.circle('fill', origin.x, origin.y, 4)
 
     -- walls
-    -- love.graphics.setColor(0, 255, 0)
-    -- for _, wall in pairs(walls) do
-    --     if wall.visible then love.graphics.rectangle('fill', wall.x, wall.y, wall.width, wall.height) end
-    -- end
+    love.graphics.setColor(0, 255, 0)
+    for _, wall in pairs(walls) do
+        if wall.visible then love.graphics.rectangle('fill', wall.x, wall.y, wall.width, wall.height) end
+    end
         
 end
